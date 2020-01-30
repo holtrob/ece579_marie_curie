@@ -1,10 +1,14 @@
-from marie_servo_config import servo_channels, servo_positions
 import maestro
+import servo
 
-controller = maestro.Controller()
+def main():
+    controller = maestro.Controller()
 
-servo_name = 'jaw_u_d'
-servo_channel = servo_channels[servo_name]
-print(f"Servo {servo_name} is on channel {servo_channel}")
+    servo_name = 'jaw_u_d'
+    jaw_u_d_servo = servo.Servo(servo_name, controller)
+    print(jaw_u_d_servo)
 
-controller.setTarget(servo_channels['jaw_u_d'], servo_positions['jaw_u_d']['open'])
+    jaw_u_d_servo.set_sem_pos('open')
+
+if __name__ == '__main__':
+    main()
