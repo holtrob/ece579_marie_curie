@@ -1,4 +1,15 @@
+"""
+servo.py
+
+This module features an implementation for a Servo class which abstracts away
+the details of the servo positions, and instead loads a servo_description dictionary
+which defines what semantic values the servo can take on and gives the position which is actually
+to be sent.  This class also interfaces with the Pololu board to perform the actual communication
+via the passed Maestro controller instance.
+"""
+
 from marie_servo_config import servo_descriptions
+
 class Servo:
     """ Implements a class for interacting and dealing with servos at a semantic level
     :param name: This is the name given to a servo and must match those defined in marie_servo_config.py
