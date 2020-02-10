@@ -93,6 +93,30 @@ class Controller:
         self.sendCmd(cmd)
         # Record Target value
         self.Targets[chan] = target
+
+    def setMultipleTargets(self, start_chan, targets):
+        """ Sets multiple servos to values.  Performs 3x faster than multiple individual writes.
+        This requires that the targets are provided contiguously.
+        (i.e. start_chan = 3, targets = [1500, 1500, 1500] will write channels 3, 4, 5.
+        
+        Arguments:
+            start_chan {int} -- The first channel number out of the contiguous channels to be set
+            targets {list} -- List of target values each in quarter microseconds.  Index 0 is
+                target value from channel start_chan.
+        """
+        # Initial command string.  0x1f corresponds to multiple target writes
+        cmd = chr(0x1f) + chr(len(targets))
+        # Iterate through targets and append to command
+        for chan, target in enumerate(targets, start=start_chan):
+            lsb = target & 0x7f #7 bits for least significant byte
+            msb = (target >> 7) & 0x7f #shift 7 and take next 7 bits for msb
+            cmd += chr(chan) + chr(lsb) + chr(msb)
+            # Record target value
+            self.Targets[chan] = target
+        # Send the actual command
+        self.sendCmd(cmd)
+
+
         
     # Set speed of channel
     # Speed is measured as 0.25microseconds/10milliseconds
