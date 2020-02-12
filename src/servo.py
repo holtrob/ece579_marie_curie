@@ -17,7 +17,7 @@ class Servo:
         
         # Try to identify which logical channel the servo is connected to on the controller
         try:
-            self.channel = servo_descriptions[name]['channel']
+            self.channel = self.servo_descriptions[name]['channel']
         except:
             print(f'Could not find channel for this controller.  Double check the name and marie_servo_config')
             raise
