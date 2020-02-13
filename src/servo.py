@@ -8,12 +8,13 @@ class Servo:
     :type maestro_controller: maestro.Controller
     :attr last_semantic: Description of semantic position last requested (i.e. up, down)
     """
-    def __init__(self, name, maestro_controller, servo_desc_fname="marie_servo_descriptions.yaml"):
+    def __init__(self, name, maestro_controller):
         self.name = name
+        servo_desc_fname = "marie_servo_descriptions.yaml"
 
         # Parse the YAML file to get the actual servo descriptions
         with open(servo_desc_fname, 'r') as f:
-            self.servo_descriptions = yaml.load(f)
+            self.servo_descriptions = yaml.load(f, Loader=yaml.FullLoader)
         
         # Try to identify which logical channel the servo is connected to on the controller
         try:
@@ -43,8 +44,11 @@ class Servo:
         self.controller.setTarget(self.channel, numerical_pos)
         self.last_semantic = 'unknown'
 
+    def get_allowed_sem_pos(self):
+        return self.servo_descriptions[self.name]['positions'].keys()
+
     def __repr__(self):
-        print(f"{self.name} servo is on channel {self.channel} in position {self.last_semantic}")
+        return f"{self.name} servo is on channel {self.channel} in position {self.last_semantic}"
 
     def __str__(self):
-        print(f"{self.name} servo is on channel {self.channel} in position {self.last_semantic}")
+        return f"{self.name} servo is on channel {self.channel} in position {self.last_semantic}"
