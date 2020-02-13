@@ -1,31 +1,44 @@
-import marie_servo_config
-import facial_expressions
 import servo
+import yaml
 
 class Face:
     def __init__(self, controller):
+        # Parse the YAML file to get the actual servo descriptions
+        servo_desc_fname = "marie_servo_descriptions.yaml"
+        with open(servo_desc_fname, 'r') as f:
+            self.servo_descriptions = yaml.load(f, Loader=yaml.FullLoader)
+        facial_expressions_fname = "expressions_gestures.yaml"
+        with open(facial_expressions_fname, 'r') as f:
+            exp_gestures = yaml.load(f, Loader=yaml.FullLoader)
+            self.expressions = exp_gestures['expressions']
+
         self.servos = {}
-        for name in marie_servo_config.servo_descriptions.keys():
+        for name in self.servo_descriptions.keys():
             self.servos[name] = servo.Servo(name, controller)
     
     def __str__(self):
         all_servo_names = ", ".join(self.servos.keys())
-        print(f"Face has servos: {all_servo_names}")
+        expressions = ", ".join(self.expressions.keys())
+        return f"Face has servos: {all_servo_names}.\nFace has expressions: {expressions}"
 
     def __repr__(self):
         all_servo_names = ", ".join(self.servos.keys())
-        print(f"Face has servos: {all_servo_names}")
+        expressions = ", ".join(self.expressions.keys())
+        return f"Face has servos: {all_servo_names}.\nFace has expressions: {expressions}"
     
+    def get_expression_names(self):
+        return list(self.expressions.keys())
+
     def perform_expression(self, exp_name, default_positions=True):
         staged_movements = {}
 
         # if default positions are desired for unspecified servos, then stage all resets
         if default_positions:
             for name in self.servos.keys():
-                staged_movements[name] = marie_servo_config.servo_descriptions[name]['default_pos']
+                staged_movements[name] = self.servo_descriptions[name]['default_position']
         
         #Update staged movements with those explicitly set in the expression
-        for s_name, pos in facial_expressions.marie_expressions[exp_name].items():
+        for s_name, pos in self.expressions[exp_name].items():
             staged_movements[s_name] = pos
 
         # Execute all movements
