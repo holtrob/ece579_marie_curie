@@ -1,30 +1,34 @@
 expressions:
-  skeptical:
-    eyebrow_l: up
-    eye_l_r: right
-  resting:
-    upper_lip: resting
   angry:
     middle_forehead: clinched
     upper_lip: clinched
+  eyebrows_up:
+    eyebrow_l: up
+    eyebrow_r: up
   meh:
     eye_l_r: left
     eye_u_d: down
+  mouth_open:
+    jaw_u_d: open
+  resting:
+    upper_lip: resting
+  skeptical_left:
+    eye_l_r: right
+    eyebrow_l: up
+  skeptical_right:
+    eye_l_r: left
+    eyebrow_r: up
   surprised:
     eyebrow_l: up
     eyebrow_r: up
     jaw_u_d: open
 gestures:
-  Something:
-  - !!python/tuple
-    - meh
-    - 0.0
-  - !!python/tuple
-    - surprised
-    - 1.0
-  - !!python/tuple
-    - meh
-    - 2.0
-
-
-    
+  Shifty:
+  - exp: skeptical_left
+    time: 0.0
+  - exp: skeptical_right
+    time: 0.5
+  - exp: skeptical_left
+    time: 1.0
+  - exp: skeptical_right
+    time: 1.5
