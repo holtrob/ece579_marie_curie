@@ -2,43 +2,65 @@ eye_l_r:
   channel: 0
   default_position: center
   positions: {center: 5604, left: 8000, right: 1984}
+  max_pos: 8000
+  min_pos: 1984
 eye_u_d:
   channel: 1
   default_position: center
   positions: {center: 5792, down: 8000, up: 3584}
+  max_pos: -1
+  min_pos: -1
 jaw_u_d:
   channel: 2
   default_position: closed
   positions: {closed: 7056, halfway: 6360, open: 5212}
+  max_pos: -1
+  min_pos: -1
 eyebrow_l:
   channel: 3
   default_position: resting
   positions: {resting: 5832, up: 8000}
+  max_pos: -1
+  min_pos: -1
 eyebrow_r:
   channel: 4
   default_position: resting
   positions: {resting: 7680, up: 6000}
+  max_pos: -1
+  min_pos: -1
 mouth_l:
   channel: 5
   default_position: resting
   positions: {back: 5640, resting: 8000}
+  max_pos: -1
+  min_pos: -1
 mouth_r:
   channel: 6
   default_position: resting
   positions: {back: 6532, resting: 3968}
+  max_pos: -1
+  min_pos: -1
 middle_forehead:
   channel: 7
   default_position: resting
   positions: {clinched: 6000, resting: 3968}
+  max_pos: -1
+  min_pos: -1
 oris_l:
   channel: 8
   default_position: resting
   positions: {clinched: 8000, resting: 3584}
+  max_pos: -1
+  min_pos: -1
 oris_r:
   channel: 9
   default_position: resting
   positions: {resting: 8000, right: 4000}
+  max_pos: -1
+  min_pos: -1
 upper_lip:
   channel: 10
   default_position: resting
   positions: {clinched: 8000, resting: 3968}
+  max_pos: -1
+  min_pos: -1
