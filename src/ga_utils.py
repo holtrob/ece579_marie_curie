@@ -4,6 +4,7 @@ import dlib
 from imutils import face_utils
 import time
 import cv2
+import numpy as np
 
 try:
     CONTROLLER = maestro.Controller()
@@ -12,6 +13,7 @@ except:
 
 try:
     CAP = cv2.VideoCapture(0)
+    CAP.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 except:
     print("Video device couldnt be initialized, expect problems)")
 
@@ -47,26 +49,49 @@ def get_score(chromosome, ref_norm_landmarks):
     actuate_chromosome(chromosome)
     time.sleep(1)
 
-    # Capture frame
+    # Throw away a capture because the minimum buffersize is 1
+    _, _ = CAP.read()
+    # Take the actual image
     ret, frame = CAP.read()
     
     # Our operations on the frame come here
     # Make the frame grayscale
     img = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     
-    # Detect bounding box for faces
-    dets = DETECTOR(img, 1)
-    
-    # Assume only one face is going to be found
-    shape = PREDICTOR(img, d[0])
+    adjusted_landmarks = _get_normed_landmarks(img)
 
+    diff_landmarks = ref_norm_landmarks - adjusted_landmarks
+    score = np.linalg.norm(diff_landmarks @ diff_landmarks.T, ord='fro')
 
-    score = None
     return score, img
 
 def _get_normed_landmarks(img):
-    # TODO: Take image and derive landmark locations
-    return
+    # TODO: derive landmark locations
+    # Detect bounding box for faces
+    dets = DETECTOR(img, 1)
 
-def get_ref_img_landmarks(img):
+    # Assume only one face is going to be found
+    shape = PREDICTOR(img, dets[0])
+    raw_landmarks = face_utils.shape_to_np(shape, dtype='float')
+
+    bbox_l, bbox_r, bbox_t, bbox_b = shape.rect.left(), shape.rect.right(), shape.rect.top(), shape.rect.bottom()
+
+    center = [shape.rect.center().x, shape.rect.center().y]
+    x_factor = float(bbox_r - center[0])
+    y_factor = float(bbox_b - center[1])
+
+    adjusted_landmarks = raw_landmarks - center
+    adjusted_landmarks[:,0] = adjusted_landmarks[:, 0] / x_factor
+    adjusted_landmarks[:,1] = adjusted_landmarks[:, 1] / y_factor
+    return adjusted_landmarks
+
+def get_ref_img_landmarks():
+    # Throw away a capture because the minimum buffersize is 1
+    _, _ = CAP.read()
+    # Take the actual image
+    ret, frame = CAP.read()
+    
+    # Our operations on the frame come here
+    # Make the frame grayscale
+    img = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     return _get_normed_landmarks(img)
