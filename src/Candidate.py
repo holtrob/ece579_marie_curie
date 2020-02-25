@@ -13,9 +13,15 @@ class Candidate:
     def __init__(self, chromosome):
         self.chromosome = chromosome
         self.score = None
+        self.image = None
+    
 
-    def set_score(self, score):
+    def set_score(self, score, image=None):
         self.score = score
+        self.image = image
+    
+    def get_image(self):
+        return self.image
     
     def __repr__(self):
         return f"Candidate chromosome: {self.chromosome} / Score: {self.score}"

@@ -41,10 +41,7 @@ def actuate_chromosome(chromosome):
     CONTROLLER.setMultipleTargets(0, servo_pos)
     return
 
-def get_score(chromosome, ref_norm_landmarks):
-    # TODO: Implement algorithm for taking picture and
-    # finding landmarks.  Then compare to reference photo landmarks
-    
+def get_score(chromosome, ref_norm_landmarks):   
     # Actuate the face and wait for it to be actuated
     actuate_chromosome(chromosome)
     time.sleep(1)
@@ -66,7 +63,6 @@ def get_score(chromosome, ref_norm_landmarks):
     return score, img
 
 def _get_normed_landmarks(img):
-    # TODO: derive landmark locations
     # Detect bounding box for faces
     dets = DETECTOR(img, 1)
 
@@ -95,3 +91,30 @@ def get_ref_img_landmarks():
     # Make the frame grayscale
     img = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     return _get_normed_landmarks(img)
+
+def add_exp(name,
+            servo_posns, 
+            expressions_filename="expressions_gestures.yaml",
+            servo_positions_fname="marie_servo_descriptions.yaml"):
+    with open(servo_positions_fname, 'r') as f:
+        servo_descs = yaml.load(f, Loader=yaml.FullLoader)
+
+    # Create reverse lookup table to turn a channel number into a servo name
+    servo_name_lut = {value['channel']: key for key, value in servo_descs.items()}
+
+    # Create a new dictionary which represents the expression
+    new_exp_dict = {servo_name_lut[channel]: servo_posns[channel] for channel in range(len(servo_posns))}
+
+    with open(expressions_filename, 'r+') as f:
+        exp_ges = yaml.load(f, yaml.FullLoader)
+        exp_ges['expressions'][name] = new_exp_dict
+    
+    return
+
+def num_children_gen(parent_pairs, total_num, each):
+    num_remaining = total_num
+    for parent1, parent2 in parent_pairs:
+        num_to_yield = min(num_remaining, each)
+        yield parent1, parent2, num_to_yield
+        num_remaining -= num_to_yield
+    return

@@ -22,24 +22,25 @@ if __name__ == "__main__":
 
     pop = Population.Population(POPSIZE, ref_landmarks)
 
-    for i in range(1, NUM_GENS + 1):
-        print(f"Now evolving generation {i}")
-        abs_this_gen_path = os.mkdir(os.path.join(abs_run_name, f"gen_{i}"))
+    for gen_num in range(1, NUM_GENS + 1):
+        print(f"Now evolving generation {gen_num}")
+        abs_this_gen_path = os.mkdir(os.path.join(abs_run_name, f"gen_{gen_num}"))
         pop.breed_new(50)
         for i, candidate in enumerate(pop.new_candidates):
             score, scored_image = ga_utils.get_score(candidate.chromosome, ref_landmarks)
             cv2.imwrite(os.path.join(abs_this_gen_path, f"candidate{i}.jpg"), scored_image)
-            candidate.set_score(score)
+            candidate.set_score(score, scored_image)
         pop.merge_and_drop_candidates(50)
+        this_gen_best_img = pop.get_best_candidate().get_image()
+        cv2.imwrite(os.path.join(abs_this_gen_path, "best_img_gen{gen_num}.jpg"), this_gen_best_img)
 
     winning_candidate = pop.get_best_candidate()
     print(winning_candidate)
+    cv2.imwrite(os.path.join(abs_run_name, "best_run_img.jpg"))
 
     ga_utils.actuate_chromosome(winning_candidate.chromosome)
 
     ga_utils.CAP.release()
+    ga_utils.CONTROLLER.close()
 
-    # TODO: Do stuff to save the winner's chromosome as an actual expression
-    # This might require modifying it or adding in servo settings that were
-    # not part of the chromosome (i.e. pupil positions which) cannot
-    # be reflected in fitness function
+    ga_utils.add_exp(expression_name, winning_candidate.chromosome)
