@@ -10,11 +10,10 @@ from ga_utils import num_children_gen
 import random
 
 class Population:
-    def __init__(self, popsize, landmarks):
+    def __init__(self, popsize):
         self.popsize = popsize
         self.candidates = []
         self.new_candidates = []
-        self.ref_landmarks = landmarks
         for _ in range(popsize):
             self.new_candidates.append(Candidate.create_random())
         return
@@ -42,7 +41,7 @@ class Population:
         for parent1, parent2, num in num_children_gen(parent_pairs, num_to_breed, num_per_parents):
             self.new_candidates += self._mate(parent1, parent2, num)
     
-    def merge_and_drop_candidates(self, num_merged_dropped):
+    def merge_and_drop_candidates(self, num_merged_dropped=None):
         """
         merge_and_drop_candidates concatenates the self.new_candidates with
         the previous self.candidates.  It then drops the worst num_merged_dropped
@@ -62,7 +61,7 @@ class Population:
         :return: most fit candidate
         :rtype: Candidate
         """
-        self._sort_population()
+        self.candidates = self._sort_population()
         return self.candidates[0]
     
     def _pair_off_parents(self, parents):
@@ -144,14 +143,16 @@ class Population:
             slice_loc = random.randint(1, chrom_len - 1)
 
             # select from parents chromosomes
-            new_cand = parents[0][:slice_loc] + parents[1][slice_loc:]
+            new_cand = Candidate(parents[0].chromosome[:slice_loc] + parents[1].chromosome[slice_loc:])
 
             # TODO: improve to introduce mutation from what was spliced together
-
+            print(f'New Candidate bred:')
+            print(f'Parents:\n{parents[0]}\n{parents[1]}\nChild:\n{new_cand}')
+            print('======================')
             new_candidates.append(new_cand)
         return new_candidates
     
-    def _drop_worst(self, num_to_drop):
+    def _drop_worst(self, num_to_drop=None):
         """
         drop_worst Removes the worst num_to_drop candidates from self.candidates
         using the self._sort_population function.
@@ -159,5 +160,22 @@ class Population:
         :param num_to_drop: Quantity of candidates to remove from the population
         :type num_to_drop: int
         """
-        self.candidates = self._sort_population()[:-num_to_drop]
+        if not num_to_drop:
+            return
+        else:
+            self.candidates = self._sort_population()[:-num_to_drop]
         return
+
+if __name__ == "__main__":
+    pop = Population(100)
+    for cand in pop.new_candidates:
+        cand.set_score(random.random())
+        print(cand)
+    pop.merge_and_drop_candidates()
+
+    print("Finding best...")
+    best = pop.get_best_candidate()
+    print(best)
+
+    print("Testing mating...")
+    pop._mate(pop.candidates[0], pop.candidates[1])
