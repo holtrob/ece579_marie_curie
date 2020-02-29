@@ -1,0 +1,5 @@
+PyYAML
+serial
+dlib
+opencv-python
+imutils
