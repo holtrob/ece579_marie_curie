@@ -1,15 +1,15 @@
 expressions:
-  skeptical:
-    eyebrow_l: up
-    eye_l_r: right
-  resting:
-    upper_lip: resting
   angry:
     middle_forehead: clinched
     upper_lip: clinched
   meh:
     eye_l_r: left
     eye_u_d: down
+  resting:
+    upper_lip: resting
+  skeptical:
+    eye_l_r: right
+    eyebrow_l: up
   surprised:
     eyebrow_l: up
     eyebrow_r: up
@@ -25,6 +25,3 @@ gestures:
   - !!python/tuple
     - meh
     - 2.0
-
-
-    

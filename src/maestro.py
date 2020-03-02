@@ -105,12 +105,12 @@ class Controller:
                 target value from channel start_chan.
         """
         # Initial command string.  0x1f corresponds to multiple target writes
-        cmd = chr(0x1f) + chr(len(targets))
+        cmd = chr(0x1f) + chr(len(targets)) + chr(start_chan)
         # Iterate through targets and append to command
         for chan, target in enumerate(targets, start=start_chan):
             lsb = target & 0x7f #7 bits for least significant byte
             msb = (target >> 7) & 0x7f #shift 7 and take next 7 bits for msb
-            cmd += chr(chan) + chr(lsb) + chr(msb)
+            cmd += chr(lsb) + chr(msb)
             # Record target value
             self.Targets[chan] = target
         # Send the actual command

@@ -6,8 +6,9 @@ D. Yakovlev
 Population.py
 """
 from Candidate import Candidate
-from ga_utils import num_children_gen
+from ga_utils import num_children_gen, clip_chromosome_limits
 import random
+import numpy as np
 
 class Population:
     def __init__(self, popsize):
@@ -32,14 +33,17 @@ class Population:
         of parents produce, defaults to 2
         :type num_per_parents: int, optional
         """
+        print(f"Breeding {num_to_breed} candidates with {num_per_parents} per parents")
         q, r = divmod(num_to_breed, num_per_parents)
         num_pairs = q + int(r > 0)
+        print(f"Need {num_pairs} pairs of parents")
         
         all_parents = self._get_mating_pool(num_pairs)
         parent_pairs = self._pair_off_parents(all_parents)
 
         for parent1, parent2, num in num_children_gen(parent_pairs, num_to_breed, num_per_parents):
             self.new_candidates += self._mate(parent1, parent2, num)
+        print(self.new_candidates)
     
     def merge_and_drop_candidates(self, num_merged_dropped=None):
         """
@@ -50,7 +54,10 @@ class Population:
         :param num_merged_dropped: quantity of Candidates to remove from the pool
         :type num_merged_dropped: int
         """
+        print(f"Merging {len(self.new_candidates)} into the previous population of {len(self.candidates)}")
         self.candidates += self.new_candidates
+        self.new_candidates = []
+        print(f"Now dropping {num_merged_dropped} candidates")
         self._drop_worst(num_merged_dropped)
     
     def get_best_candidate(self):
@@ -114,7 +121,7 @@ class Population:
             
         return sorted(self.candidates, key=lambda x: x.score, reverse=high_score_is_better)
 
-    def _mate(self, candidate1, candidate2, num_new=2):
+    def _mate(self, candidate1, candidate2, num_new=2, mut_std=50):
         """
         _mate Combine parents into a number of new child candidates.
         Contiguous sections of the individual parent chromosomes are selected for
@@ -127,6 +134,8 @@ class Population:
         :type candidate2: instance of Candidate
         :param num_new: number of children to generate from these parents, defaults to 2
         :type num_new: int, optional
+        :param mut_std: Standard deviation of the individual gene mutations in quarter microseconds
+        :type mut_std: int
         :return: Child Candidates
         :rtype: list of Candidates
         """
@@ -142,13 +151,19 @@ class Population:
             # favor of taking more genes from the more fit parent.
             slice_loc = random.randint(1, chrom_len - 1)
 
-            # select from parents chromosomes
+            # Crossover the parent's chromosomes
             new_cand = Candidate(parents[0].chromosome[:slice_loc] + parents[1].chromosome[slice_loc:])
 
-            # TODO: improve to introduce mutation from what was spliced together
-            print(f'New Candidate bred:')
-            print(f'Parents:\n{parents[0]}\n{parents[1]}\nChild:\n{new_cand}')
-            print('======================')
+            # Apply variation to each gene in the chromosome.
+            # The mutation is based on a multivariate normal distribution with means centered
+            # on the inherited genes via crossover.  The variance controls how severe the mutation is
+            # a standard deviation (mut_std) indicates that ~68% of the time, the new gene will be within
+            # 50 quarter microseconds of the inherited gene.
+            new_cand.chromosome = list(np.random.normal(loc=new_cand.chromosome, scale=mut_std).astype('int'))
+            
+            # Saturate the genes at their allowed limits to ensure that the hardware is not damaged.
+            new_cand.chromosome = clip_chromosome_limits(new_cand.chromosome)
+
             new_candidates.append(new_cand)
         return new_candidates
     

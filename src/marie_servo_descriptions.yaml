@@ -14,8 +14,8 @@ jaw_u_d:
   channel: 2
   default_position: closed
   positions: {closed: 6864, halfway: 6360, open: 5336}
-  max_pos: 6864
-  min_pos: 5336
+  max_pos: 7680
+  min_pos: 4959
 eyebrow_l:
   channel: 3
   default_position: resting
@@ -38,7 +38,7 @@ mouth_r:
   channel: 6
   default_position: resting
   positions: {back: 6532, resting: 3968}
-  max_pos: 8000
+  max_pos: 4000
   min_pos: 3968
 middle_forehead:
   channel: 7

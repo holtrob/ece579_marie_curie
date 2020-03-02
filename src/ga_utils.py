@@ -21,6 +21,17 @@ DETECTOR = dlib.get_frontal_face_detector()
 PREDICTOR = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
 
 def get_servo_limits(yaml_filename="marie_servo_descriptions.yaml"):
+    """
+    get_servo_limits parses the yaml file defining servo limits for the robot.
+    The resulting list of tuples has the lower limit in index 0 and the upper limit
+    in index 1 for each tuple.
+    
+    :param yaml_filename: filename for the yaml file with appropriate structure,
+    defaults to "marie_servo_descriptions.yaml"
+    :type yaml_filename: str, optional
+    :return: list of tuples which indicate the lower and upper limits for each 
+    :rtype: list of tuples of ints
+    """
     # Open up the yaml file and bring in the servo descriptions
     with open(yaml_filename, 'r') as f:
         servo_descs = yaml.load(f, Loader=yaml.FullLoader)
@@ -36,6 +47,14 @@ def get_servo_limits(yaml_filename="marie_servo_descriptions.yaml"):
 
 LIMITS = get_servo_limits()
 
+def clip_chromosome_limits(chromosome):
+    np_limits = np.array(LIMITS)
+
+    clip_l = np_limits[:,0]
+    clip_h = np_limits[:,1]
+
+    return list(np.clip(chromosome, clip_l, clip_h))
+
 def actuate_chromosome(chromosome):
     servo_pos = chromosome
     CONTROLLER.setMultipleTargets(0, servo_pos)
@@ -44,7 +63,7 @@ def actuate_chromosome(chromosome):
 def get_score(chromosome, ref_norm_landmarks):   
     # Actuate the face and wait for it to be actuated
     actuate_chromosome(chromosome)
-    time.sleep(1)
+    time.sleep(0.5)
 
     # Throw away a capture because the minimum buffersize is 1
     _, _ = CAP.read()
@@ -81,16 +100,11 @@ def _get_normed_landmarks(img):
     adjusted_landmarks[:,1] = adjusted_landmarks[:, 1] / y_factor
     return adjusted_landmarks
 
-def get_ref_img_landmarks():
+def get_ref_img_landmarks(filename):
     # Throw away a capture because the minimum buffersize is 1
-    _, _ = CAP.read()
-    # Take the actual image
-    ret, frame = CAP.read()
-    
-    # Our operations on the frame come here
-    # Make the frame grayscale
-    img = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    return _get_normed_landmarks(img)
+    frame = dlib.load_rgb_image(filename)
+
+    return _get_normed_landmarks(frame)
 
 def add_exp(name,
             servo_posns, 
@@ -105,9 +119,11 @@ def add_exp(name,
     # Create a new dictionary which represents the expression
     new_exp_dict = {servo_name_lut[channel]: servo_posns[channel] for channel in range(len(servo_posns))}
 
-    with open(expressions_filename, 'r+') as f:
+    with open(expressions_filename, 'r') as f:
         exp_ges = yaml.load(f, yaml.FullLoader)
         exp_ges['expressions'][name] = new_exp_dict
+    with open(expressions_filename, 'w') as f:
+        yaml.dump(exp_ges, f)
     
     return
 
@@ -118,3 +134,8 @@ def num_children_gen(parent_pairs, total_num, each):
         yield parent1, parent2, num_to_yield
         num_remaining -= num_to_yield
     return
+
+if __name__ == "__main__":
+    print(f"Limits are:")
+    for i, limit in enumerate(LIMITS):
+        print(f"Servo {i}: {limit}")
