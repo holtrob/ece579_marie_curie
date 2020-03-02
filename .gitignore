@@ -127,7 +127,15 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-
+src/shape_predictor_68_face_landmarks.dat
 scratch/
-
+shape_predictor_68_face_landmarks.dat
 .vscode/
+# Ignore run results.  Way too many files in here
+ga_*/
+
+# Ignore various latex files which are autogen'd
+docs/*.aux
+docs/*.fdb_latexmk
+docs/*.fls
+docs/*.synctex.gz
