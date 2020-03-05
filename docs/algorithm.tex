@@ -4,12 +4,15 @@
 \usepackage{algpseudocode}
 \usepackage{bm}
 \usepackage{amssymb}
+\usepackage[letterpaper, margin=0.75in]{geometry}
 
 \DeclareMathOperator*{\argmin}{argmin}
 
 \begin{document}
 
-\begin{algorithm}
+\listofalgorithms
+
+\begin{algorithm}[H]
 	\caption{Marie Curie Genetic Algorithm Overview} 
     \begin{algorithmic}[1]
         \State Let $NUM\_GENS = 100$ represent the number of generations to evolve
@@ -32,29 +35,7 @@
 	\end{algorithmic} 
 \end{algorithm}
 
-\begin{algorithm}
-	\caption{MC Score Algorithm (mc\_score($X$, $L^\prime_R$))} 
-	\begin{algorithmic}[1]
-		\State Let $M = 68$ be the number of landmarks recognized in an image (constrained by dlib landmark recognition algorithm)
-		\State Let $D = 2$ be the dimensionality of a single landmark
-		\State Let $L \in R^{D, M}$ represent the raw pixel valued landmarks
-		\State Let $L^\prime_R$ be the reference landmarks to score against
-		\State Let $X$ be the chromosome to score
-		\State Actuate X on the face using the Maestro Controller
-		\State Capture an image, $I_C$, of the face
-		\State Get the bounding box $B$ of the face
-		\State Detect the center of a rectangular bounding box, $B_C = [x, y]^T \in \mathbb{R}^2$ of the face
-		\State Detect raw landmarks for cand. image $L_C = dlib\_predictor(I_C).landmarks$
-		\State Calculate new "centered" landmarks $L^C_C = L_C - (B_C \otimes \mathbf{1}^T)$
-		\State Calculate the horizontal scaling by $x_s = B_{Right} - B_{C, x}$
-		\State Calculate the vertical scaling by $y_s = B_{Bottom} - B_{C, y}$
-		\State Get normalized landmarks $L^\prime_C = L^C_C \oslash ([x_s, y_s]^T \otimes \mathbf{1}^T)$
-		\State Calculate difference in corresponding landmarks between the reference image and the candidate image $L_D = L^\prime_C - L^\prime_R$
-		\State \Return $\| L_D \|_F = \sqrt{tr(L^T_DL_D)}$ where $L^T_DL_D \in \mathbb{R}^{(M, M)}$ is the Gramian matrix of $L_D$ and the diagonal elements of $L^T_DL_D$ represent the euclidean distance error of each landmark.  This can also be expressed as the square root of the sum of the squared errors.
-	\end{algorithmic}
-\end{algorithm}
-
-\begin{algorithm}
+\begin{algorithm}[H]
 	\caption{MC Breed New (mc\_breed\_new($N_C$, $N_{CpP}$))}
 	\begin{algorithmic}[1]
 		\State Let $N_C$ be the number of new candidates to breed
@@ -77,4 +58,26 @@
 		\State \Return $N$
 	\end{algorithmic} 
 \end{algorithm} 
+
+\begin{algorithm}[H]
+	\caption{MC Score Algorithm (mc\_score($X$, $L^\prime_R$))} 
+	\begin{algorithmic}[1]
+		\State Let $M = 68$ be the number of landmarks recognized in an image (constrained by dlib landmark recognition algorithm)
+		\State Let $D = 2$ be the dimensionality of a single landmark
+		\State Let $L \in R^{D, M}$ represent the raw pixel valued landmarks
+		\State Let $L^\prime_R$ be the reference landmarks to score against
+		\State Let $X$ be the chromosome to score
+		\State Actuate X on the face using the Maestro Controller
+		\State Capture an image, $I_C$, of the face
+		\State Get the bounding box $B$ of the face
+		\State Detect the center of a rectangular bounding box, $B_C = [x, y]^T \in \mathbb{R}^2$ of the face
+		\State Detect raw landmarks for cand. image $L_C = dlib\_predictor(I_C).landmarks$
+		\State Calculate new "centered" landmarks $L^C_C = L_C - (B_C \otimes \mathbf{1}^T)$
+		\State Calculate the horizontal scaling by $x_s = B_{Right} - B_{C, x}$
+		\State Calculate the vertical scaling by $y_s = B_{Bottom} - B_{C, y}$
+		\State Get normalized landmarks $L^\prime_C = L^C_C \oslash ([x_s, y_s]^T \otimes \mathbf{1}^T)$
+		\State Calculate difference in corresponding landmarks between the reference image and the candidate image $L_D = L^\prime_C - L^\prime_R$
+		\State \Return $\| L_D \|_F = \sqrt{tr(L^T_DL_D)}$ where $L^T_DL_D \in \mathbb{R}^{(M, M)}$ is the Gramian matrix of $L_D$ and the diagonal elements of $L^T_DL_D$ represent the euclidean distance error of each landmark.  This can also be expressed as the square root of the sum of the squared errors.
+	\end{algorithmic}
+\end{algorithm}
 \end{document}
