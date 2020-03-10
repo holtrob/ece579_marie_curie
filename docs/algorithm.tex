@@ -1,59 +1,83 @@
 \documentclass{article}
 \usepackage{algorithm} 
+\usepackage{amsmath}
 \usepackage{algpseudocode}
 \usepackage{bm}
 \usepackage{amssymb}
+\usepackage[letterpaper, margin=0.75in]{geometry}
+
+\DeclareMathOperator*{\argmin}{argmin}
+
 \begin{document}
 
-\begin{algorithm}
+\listofalgorithms
+
+\begin{algorithm}[H]
 	\caption{Marie Curie Genetic Algorithm Overview} 
     \begin{algorithmic}[1]
         \State Let $NUM\_GENS = 100$ represent the number of generations to evolve
         \State Let $POP\_SIZE = 100$ represent the size of the total population
 		\State Let $NBPG = 50$ represent the number of new candidates to breed every generation
-		\State Let $S_{min}$ and $S_{max}$ represent the vectors of servo limits
+		\State Let $\bm{S_{min}}$ and $\bm{S_{max}}$ represent the vectors of servo limits
 		\State Let $L_R$ represent the landmarks in the reference image
 		\State Let $P = \{C_i, i \in \{0, 1, .., POP\_SIZE\}\}$ where each $C_i$ is a candidate expression
 		\For {$i \in \{0, 1, .., POP\_SIZE - 1\}$}
-			\State Initialize $C_i.chromosome$ to $\mathcal{U}(\bm{S_{min}}, \bm{S_{max}})$
+			\State Initialize $\mathbf{C_i.chromosome}$ to $\mathcal{U}(\bm{S_{min}}, \bm{S_{max}})$
 			\State Score each candidate s.t. $C_i.score = mc\_score()$
 		\EndFor
 		\For {$g \in \{0, 1, .., NUM\_GENS\}$}
 			\State Let $N = \{N_i, i \in \{0, 1, ..,NBPG\}\} = mc\_breed\_new(NBPG)$ be the set of new candidates for this gen
-			\State Score $N$ s.t. $N_i.score = mc\_score(N_i.chromosome, L_R)$
+			\State Score $N$ s.t. $N_i.score = mc\_score(\mathbf{N_i.chromosome}, L_R)$
 			\State Set $C = C \cup N$
-			\State Remove the $NBPG$ elements with the lowest score from $C$ 
+			\State Remove the $NBPG$ elements with the worst score from $C$ 
 		\EndFor
-		\State \Return $C_{opt} = min(C)$
+		\State \Return $C_{opt} = C_i$ where $i = \argmin\limits_i \{C_i.score\}$
 	\end{algorithmic} 
 \end{algorithm}
 
-\begin{algorithm}
+\begin{algorithm}[H]
+	\caption{MC Breed New (mc\_breed\_new($N_C$, $N_{CpP}$))}
+	\begin{algorithmic}[1]
+		\State Let $N_C$ be the number of new candidates to breed
+		\State Let $N_{CpP}$ be the maximum number of candidates to breed for a single set of parents
+		\State Calculate the number of pairs of parents $N_{pP}$
+		\State Get the mating pool $M$ which is comprised of the best (lowest) scoring $2N_{pP}$ candidates in $C$
+		\State Create $N_{pP}$ pairs of parents, $P_p$, by pairing the highest scoring parents together (i.e. $P_p = \{\{M_0, M_1\}, \{M_2, M_3\}, \dots\}$)
+		\State Initialize $N = \emptyset$ where $N$ is the set of all new candidates bred this generation.
+		\For {$p \in P_p$}
+			\For {$j \in \{0, 1, \dots, N_{CpP} - 1\}$}
+				\State Let $C_N$ represent the new candidate 
+				\State Randomize order of $p$
+				\State Randomly select location $i$ in which to perform crossover of chromosomes
+				\State Set $\mathbf{C_N.chromosome} = [p_0[:i]^T, p_1[i:]^T]^T$ representing the concatenation of the two parent chromosomes sliced at index i
+				\State Set $\mathbf{C_N.chromosome} = \mathcal{N}(\mathbf{C_N.chromosome}, 50^2)$ representing a mutation of the inherited chromosome with each gene varying in a normal distribution parameterized by $\bm{\mu} = \mathbf{C_N.chromosome}$ and $\sigma^2 = 50^2$ where 50 is the standard deviation in quarter microseconds
+				\State Saturate values in $\mathbf{C_N.chromosome}$ to safe limits for servos
+				\State Append $C_N$ to $N$ by $N = N \cup C_N$
+			\EndFor
+		\EndFor
+		\State \Return $N$
+	\end{algorithmic} 
+\end{algorithm} 
+
+\begin{algorithm}[H]
 	\caption{MC Score Algorithm (mc\_score($X$, $L^\prime_R$))} 
 	\begin{algorithmic}[1]
-		\State Let $M = 68$ be the number of landmarks recognized in an image
+		\State Let $M = 68$ be the number of landmarks recognized in an image (constrained by dlib landmark recognition algorithm)
 		\State Let $D = 2$ be the dimensionality of a single landmark
-		\State Let $L \in R^{M, N}$ represent the raw pixel valued landmarks
+		\State Let $L \in R^{D, M}$ represent the raw pixel valued landmarks
 		\State Let $L^\prime_R$ be the reference landmarks to score against
 		\State Let $X$ be the chromosome to score
 		\State Actuate X on the face using the Maestro Controller
 		\State Capture an image, $I_C$, of the face
 		\State Get the bounding box $B$ of the face
-		\State Detect the center of a rectangular bounding box, $B_C = [x, y] \in \mathbb{R}^2$ of the face
-		\State Detect raw landmarks $L_C = dlib\_predictor(I_C).landmarks$
-		\State Calculate new "centered" landmarks $L^C_C = L_C - (\mathbf{1} \otimes B_C)$
+		\State Detect the center of a rectangular bounding box, $B_C = [x, y]^T \in \mathbb{R}^2$ of the face
+		\State Detect raw landmarks for cand. image $L_C = dlib\_predictor(I_C).landmarks$
+		\State Calculate new "centered" landmarks $L^C_C = L_C - (B_C \otimes \mathbf{1}^T)$
 		\State Calculate the horizontal scaling by $x_s = B_{Right} - B_{C, x}$
 		\State Calculate the vertical scaling by $y_s = B_{Bottom} - B_{C, y}$
-		\State Get normalized landmarks $L^\prime_C = L^C_C \oslash (\mathbf{1} \otimes [x_s, y_s])$
-		\State Calculate difference in corresponding landmarks $L_D = L^\prime_R - L^\prime_C$
-		\State \Return $\| L_D \|_F = \sqrt{tr(L^T_DL_D)}$ where $L^T_DL_D$ is the Gramian matrix of $L_D$ and the diagonal elements of $L^T_DL_D$ represent the euclidean distance error of each landmark
+		\State Get normalized landmarks $L^\prime_C = L^C_C \oslash ([x_s, y_s]^T \otimes \mathbf{1}^T)$
+		\State Calculate difference in corresponding landmarks between the reference image and the candidate image $L_D = L^\prime_C - L^\prime_R$
+		\State \Return $\| L_D \|_F = \sqrt{tr(L^T_DL_D)}$ where $L^T_DL_D \in \mathbb{R}^{(M, M)}$ is the Gramian matrix of $L_D$ and the diagonal elements of $L^T_DL_D$ represent the euclidean distance error of each landmark.  This can also be expressed as the square root of the sum of the squared errors.
 	\end{algorithmic}
 \end{algorithm}
-
-\begin{algorithm}
-	\caption{MC Breed New (mc\_breed\_new(num\_to\_breed))}
-	\begin{algorithmic}[1]
-		\State
-	\end{algorithmic} 
-\end{algorithm} 
 \end{document}
